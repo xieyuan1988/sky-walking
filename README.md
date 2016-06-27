@@ -1,228 +1,183 @@
-# Sky Walking
-SkyWalking-Distributed Application Tracing System, 是一个对JAVA应用程序运行情况进行追踪、告警和分析的系统。
-* 核心理论为[Google Dapper论文：Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](http://research.google.com/pubs/pub36356.html),英语有困难的同学可参考[国内翻译](http://duanple.blog.163.com/blog/static/70971767201329113141336/)
-* 本分析系统能通过不修改或少量修改代码的模式，对现有的JAVA应用或J2EE应用进行监控和数据收集，并针对应用进场进行准实时告警。此外提供大量的调用性能分析功能，解决目前的监控系统主要监控进程、端口而非应用实际性能的问题。
+Sky Walking
+==========
 
-# 主要贡献者
-* 吴晟 &nbsp;&nbsp;[亚信](http://www.asiainfo.com/) wusheng@asiainfo.com
-* 张鑫 &nbsp;&nbsp;[亚信](http://www.asiainfo.com/) zhangxin10@asiainfo.com
+<img src="http://wu-sheng.github.io/sky-walking/images/skywalking.png" alt="Sky Walking logo" height="90px" align="right" />
+
+SkyWalking: Large-Scale Distributed Systems Tracing Infrastructure, 是一个对JAVA分布式应用程序集群的业务运行情况进行追踪、告警和分析的系统。
+
+[![Build Status](https://travis-ci.org/wu-sheng/sky-walking.svg?branch=master)](https://travis-ci.org/wu-sheng/sky-walking)
+![license](https://img.shields.io/aur/license/yaourt.svg)
+
+# 简介 / abstract
+* 核心理论为[Google Dapper论文：Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](http://research.google.com/pubs/pub36356.html),英语有困难的同学可参考[国内翻译](http://duanple.blog.163.com/blog/static/70971767201329113141336/)
+* 本分析系统能通过动态字节码技术，对现有的JAVA应用或J2EE应用进行监控和数据收集，并针对应用进场进行准实时告警。此外提供大量的调用性能分析功能，解决目前的监控系统主要监控进程、端口而非应用实际性能的问题。
+* 支持国内常用的dubbo以及dubbox等常见RPC框架，支持应用异常的邮件告警
+* skywalking-sdk层面提供的埋点API，同步阻塞访问时间小于100μs
+* 通过[byte-buddy](https://github.com/raphw/byte-buddy)，插件将通过动态字节码机制，避免代码侵入性，完成监控。动态代码模式埋点，同步阻塞访问时间应在200-300μs
+* 提供一定的日志数据分析和展现能力，减少或者避免使用团队的二次开发
+* SkyWalking is an open source Large-Scale Distributed Systems Tracing Infrastructure, also been known as APM(Application Performance Management) tool. SkyWalking provides a solution to help monitor and analysis a Large-Scale Distributed Systems.
+* SkyWalking supports popular rpc frameworks, such as [dubbo](https://github.com/alibaba/dubbo), [dubbox](https://github.com/dangdangdotcom/dubbox), etc., supports email-alert when application occurs unexpected exception。
+* SkyWalking's basic API, execution time of blocking saving span must less than 100μs.
+* By using [byte-buddy](https://github.com/raphw/byte-buddy) (Thanks to [raphw](https://github.com/raphw)), plugins use dynamic byte code generation to avoid invasive codes. plugins API, execution time of blocking saving span must between 200μs and 300μs, including execution time of dynamic byte code.
+* Provide trace log analysis and presentation capabilities, Reduce or avoid add-on functions development.
+
+|plugins|using config file|using dynamic byte code| coding |remarks|
+| ----------- |---------| ----------|----------|----------|
+|web-plugin|web.xml| - | - | - |
+|dubbo-plugin| dubbo/dubbox config file | - | - | - |
+|spring-plugin| spring config file | - | - | - |
+|jdbc-plugin| jdbc config file | - | - | - |
+|mysql-plugin| - | YES | - | - |
+|httpClient-4.x-plugin| - | YES | - | - |
+|httpClient-4.x-plugin-dubbox-rest-attachment| - | YES | - | required client-4.x-plugin |
+|jedis-2.x-plugin| - | YES | - | - |
+
+
+
+# 主要贡献者 / Contributors
+* 吴晟 [wusheng](https://github.com/wu-sheng) &nbsp;&nbsp;wu.sheng@foxmail.com
+* 张鑫 [zhangxin](https://github.com/ascrutae) &nbsp;&nbsp;
+
+# 交流
+* Mail to：wu.sheng@foxmail.com
+* QQ群：392443393，请注明“Sky Walking交流”
+* 谁在使用Sky Walking?[点击进入](https://github.com/wu-sheng/sky-walking/issues/34)。同时请各位使用者反馈下，都在哪些项目中使用。
+* if you are using SkyWalking，[Report to us](https://github.com/wu-sheng/sky-walking/issues/34) please.
 
 # 整体架构图
 ![整体架构图](http://wu-sheng.github.io/sky-walking/sample-code/images/skywalkingClusterDeploy.jpeg)
 
-# 典型页面展现
+# 典型页面展现 / Typical UI show
+* 支持浏览器：Firefox/Chrome
+
 ## 实时调用链路
 * 实时链路追踪展现
-![追踪连路图1](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/callChain.png)
+![追踪连路图1](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/callChain.png)
 * 实时链路追踪详细信息查看
-![追踪连路图2](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/callChainDetail.png)
+![追踪连路图2](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/callChainDetail.png)
 * 实时链路追踪日志查看
-![追踪连路图3](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/callChainLog.png)
+![追踪连路图3](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/callChainLog.png)
+* 实时链路异常告警邮件
+![告警邮件](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/alarmMail.png)
+* 添加应用
+![添加应用](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/addApp.png)
+* 应用列表展现
+![应用列表展现](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/appList.png)
 
 ## 分析汇总
-
-# Home Page
-http://wu-sheng.github.io/sky-walking/
-
-# API Guide
-http://wu-sheng.github.io/sky-walking/sample-code/codeView.html
-
-# Contact Us
-
-Mail: wu.sheng@foxmail.com
+* 分析结果查询，根据viewpoint模糊匹配查询。查询方式为viewpoint: + 关键字
+![应用列表展现](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/searchAnalysisResult.png)
+* 分析结果展现，通过分析结果查询页面点击进入
+![应用列表展现](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/analysisResult.png)
+* 分析典型调用链展现
+![应用列表展现](http://wu-sheng.github.io/sky-walking/sample-code/screenshoot/1.0b/typicalAnalysisResult.png)
 
 # Quick Start
-## 编译与部署
-### 部署第三方软件
-- 安装zookeeper 3.4.6
-- 安装apache hbase 1.1.2
-- 安装mysql
-- 安装tomcat 7
+- master分支正在进行1.0-Final迭代。1.0b的完整代码，请参见 [1.0-beta-tag](https://github.com/wu-sheng/sky-walking/tree/1.0-beta)
+- Developing of version 1.0-Final on branch Master. The source code of version [1.0-beta-tag](https://github.com/wu-sheng/sky-walking/tree/1.0-beta)
 
-### 编译安装SkyWalking Server
-- 编译工程
-```shell
-$cd github/sky-walking/skywalking-server
-$mvn package -Dmaven.test.skip=true
-$cd github/sky-walking/skywalking-server/target/installer
-```
-- 拷贝installer到服务器
-- 根据服务器环境修改/config/config.properties
-```properties
-#服务器收集数据监听端口
-server.port=34000
+## 部署第三方软件 / Required of third party softwares
+- JDK 1.7
+- zookeeper 3.4.6
+- apache hbase 1.1.2
+- mysql
+- tomcat 7
+- redis-3.0.5
 
-#数据缓存文件目录，请确保此目录有一定的存储容量
-buffer.data_buffer_file_parent_directory=D:/test-data/data/buffer
-#偏移量注册文件的目录
-registerpersistence.register_file_parent_directory=d:/test-data/data/offset
+## 插件支持的JDK / Supported jdk version
+- 1.6以上版本 / support 1.6+
 
-#hbase zk quorum
-hbaseconfig.zk_hostname=10.1.235.197,10.1.235.198,10.1.235.199
-#hbase zk port
-hbaseconfig.client_port=29181
+## 编译与部署 / Build and deploy
+- 服务端发布版本[下载](https://github.com/wu-sheng/sky-walking/releases)  (.tar.gz)
+- Download Server release version. [Download](https://github.com/wu-sheng/sky-walking/releases)  (.tar.gz)
+- [配置应用服务器](CONFIG_DOC.md)
+- [config servers](CONFIG_DOC.md)
+- 如果您想自己编译最新版本，可参考《[代码编译说明](BUILD_DOC.md)》
+- [Code compilation instructions](BUILD_DOC.md)
 
-#Redis配置
-alarm.redis_server=10.1.241.18:16379
-```
-- 启动服务
-```shell
-$cd installer/bin
-$./swserver.sh
-```
-- 可根据需要部署多个实例
 
-### 编译安装SkyWalking Alarm
-- 编译工程
-```shell
-$cd github/sky-walking/skywalking-alarm
-$mvn package -Dmaven.test.skip=true
-$cd github/sky-walking/skywalking-alarm/target/installer
-```
-- 拷贝installer到服务器
-- 根据服务器环境修改/config/config.properties
-```properties
-#zookeeper连接地址,用于协调集群，可以和hbase的zookeeper共用
-zkpath.connect_str=10.1.241.18:29181,10.1.241.19:29181,10.1.241.20:29181
+## 引入核心SDK / Import SDK
+[ ![Download](https://api.bintray.com/packages/wu-sheng/skywalking/com.ai.cloud.skywalking-api/images/download.svg) ](https://bintray.com/wu-sheng/skywalking/com.ai.cloud.skywalking-api/_latestVersion) 
 
-#管理数据库的JDBC连接信息
-#数据库连接地址
-db.url=jdbc:mysql://10.1.241.20:31306/sw_db
-#数据库用户名
-db.user_name=sw_dbusr01
-#数据库密码
-db.password=sw_dbusr01
-
-#告警信息存在的redis服务器地址，需要和skywalking-server的alarm.redis_server设置一致
-alarm.redis_server=127.0.0.1:6379
-```
-- 启动服务
-```shell
-$cd installer/bin
-$./sw-alarm-server.sh
-```
-- 可根据需要部署多个实例，根据实例启动数量，自动负载均衡
-
-### 编译安装SkyWalking WebUI
-- 修改配置文件config.properties
-```properties
-#hbase的连接地址
-hbaseconfig.quorum=10.1.235.197,10.1.235.198,10.1.235.199
-hbaseconfig.client_port=29181
-```
-- 修改配置文件jdbc.properties
-```properties
-#管理数据库的JDBC连接信息
-jdbc.url=jdbc:mysql://10.1.228.202:31316/test
-jdbc.username=devrdbusr21
-jdbc.password=devrdbusr21
-```
-- 编译工程
-```shell
-$cd github/sky-walking/skywalking-webui
-$mvn package
-```
-- 初始化管理数据库
-根据[数据库脚本](https://github.com/wu-sheng/sky-walking/blob/master/skywalking-webui/src/main/sql/table.mysql)初始化管理数据库。其中，脚本中如下SQL片段需要修改：
-```sql
---配置告警邮件的发送人和SMTP信息
-INSERT INTO `system_config` (`config_id`,`conf_key`,`conf_value`,`val_type`,`val_desc`,`create_time`,`sts`,`modify_time`) VALUES (1000,'mail_info','{\"mail.host\":\"mail.asiainfo.com\",\"mail.transport.protocol\":\"smtp\",\"mail.smtp.auth\":\"true\",\"mail.smtp.starttls.enable\":\"false\",\"mail.username\":\"testA\",\"mail.password\":\"******\",\"mail.account.prefix\":\"@asiainfo.com\"}','json','默认邮件发送人信息','2015-12-10 11:54:06','A','2015-12-10 11:54:06');
---配置部署页面地址，用于告警邮件内的链接
-INSERT INTO `system_config` (`config_id`,`conf_key`,`conf_value`,`val_type`,`val_desc`,`create_time`,`sts`,`modify_time`) VALUES (1001,'portal_addr','http://10.1.235.197:48080/skywalking/','string','默认门户地址','2015-12-10 15:23:53','A','2015-12-10 15:23:53');
---配置SkyWalking Server的集群地址（内网地址）
-INSERT INTO `system_config` (`config_id`,`conf_key`,`conf_value`,`val_type`,`val_desc`,`create_time`,`sts`,`modify_time`) VALUES (1002,'servers_addr','10.1.235.197:34000;10.1.235.197:35000;','string','日志采集地址','2015-12-10 15:23:53','A','2015-12-10 15:23:53');
---配置SkyWalking Server的集群地址（外网地址）
-INSERT INTO `system_config` (`config_id`,`conf_key`,`conf_value`,`val_type`,`val_desc`,`create_time`,`sts`,`modify_time`) VALUES (1003,'servers_addr_1','60.194.3.183:34000;60.194.3.183:35000;60.194.3.184:34000;60.194.3.184:35000;','string','日志采集地址-外网','2015-12-10 15:23:53','A','2015-12-10 15:23:53');
-```
-- 上传war包到服务器，启动Tomcat服务器
-
-### 编译安装SkyWalking Analysis
-暂未提供
-
-## 使用maven发布各插件工程
-发布skywalking-sdk-plugin下的各子工程(dubbo-plugin，spring-plugin，web-plugin，jdbc-plugin，httpclient-4.2.x-plugin，httpclient-4.3.x-plugin)
-
-## 根据所需的监控点，引入maven依赖
-暂不存在公网仓库，需要本地编译并发布
+- 核心SDK通过[skywalking bintray官网](https://bintray.com/wu-sheng/skywalking/)托管，可使用公网仓库[https://jcenter.bintray.com/](https://jcenter.bintray.com/)下载。
+- use public repository  [https://jcenter.bintray.com/](https://jcenter.bintray.com/) to download sdk
+- 无论试用哪种插件，都必须引入
+- add dependencies to pom.xml
 ```xml
+<!-- API日志输出，客户端可指定所需的log4j2版本 -->
+<!-- 2.4.1为开发过程所选用版本 -->
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.4.1</version>
+</dependency>
 <!-- 监控api，可监控插件不支持的调用 -->
 <dependency>
     <groupId>com.ai.cloud</groupId>
     <artifactId>skywalking-api</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- Spring插件，监控所有Spring托管对象的调用-->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-spring-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- dubbo插件，监控dubbo/dubbox调用 -->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-dubbo-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- jdbc插件，监控所有的jdbc调用 -->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-jdbc-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- web，监控web调用 -->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-web-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- httpClient插件，监控httpClient 4.2的调用 -->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-httpClient-4.2.x-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<!-- httpClient插件，监控httpClient 4.3的调用 -->
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-httpClient-4.3.x-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>{lastest-version}</version>
 </dependency>
 ```
-查询不会引用所需的第三方组件（如Spring、dubbo、dubbox等），请自行引入所需的版本。
 
-## 根据所需插件配置应用程序
-参考[用户指南](http://wu-sheng.github.io/sky-walking/sample-code/codeView.html)
+## 使用-javaagent 或 全新的main class
+- start application with -javaagent. 
 
-## 下载并设置授权文件
+- Or using new main class, instead of the original main class.
+```shell
+#原进程启动命令：
+#original starup command
+java com.company.product.Startup arg0 arg1
+
+#全新的进程启动命令：
+#new starup command
+java com.ai.cloud.skywalking.plugin.TracingBootstrap com.company.product.Startup arg0 arg1
+```
+
+- 如果应用为Tomcat，需要修改tomcat相关启动文件:catalina.sh。推荐将项目转为tomcat-embeded模式。以下修改，仅作为参考。
+- If you want to trace a tomcat application, you need to modify 'catalina.sh'
+```
+# add skywalking jar into CLASSPATH
+CLASSPATH=$CLASSPATH:$CATALINA_HOME/lib/skywalking-api-{lastest-version}.jar:$CATALINA_HOME/lib/log4j-api.jar:$CATALINA_HOME/lib/log4j-core.jar
+
+# use new main, samples in Tomcat8
+exec "$_RUNJDB" "$LOGGING_CONFIG" $LOGGING_MANAGER $JAVA_OPTS $CATALINA_OPTS \
+  -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" -classpath "$CLASSPATH" \
+  -sourcepath "$CATALINA_HOME"/../../java \
+  -Djava.security.manager \
+  -Djava.security.policy=="$CATALINA_BASE"/conf/catalina.policy \
+  -Dcatalina.base="$CATALINA_BASE" \
+  -Dcatalina.home="$CATALINA_HOME" \
+  -Djava.io.tmpdir="$CATALINA_TMPDIR" \
+  com.ai.cloud.skywalking.plugin.TracingBootstrap org.apache.catalina.startup.Bootstrap "$@" start
+```
+
+## 根据所需插件，配置应用程序 / Config application
+- Ref 《[SDK Guides](skywalking-sdk-plugin)》
+- 所有插件，已经通过[skywalking bintray官网](https://bintray.com/wu-sheng/skywalking/)托管，可使用公网仓库[https://jcenter.bintray.com/](https://jcenter.bintray.com/)下载。
+- 注意：插件不会引用所需的第三方组件（如Spring、dubbo、dubbox等），请自行引入所需的版本。
+
+
+## 下载并设置授权文件 / Download auth file
 - 注册并登陆过skywalking-webui，创建应用。（一个用户代表一个逻辑集群，一个应用代表一个服务集群。如前后端应用应该设置两个应用，但归属一个用户）
-- 下载授权文件，并在运行时环境中，将授权文件加入到CLASSPATH中
+- Sign up and login in skywalking-webui. Create application as needed.
+- 下载授权文件，并在运行时环境中，将授权文件加入到CLASSPATH或LIB中
+- download auth file(*.jar), and add the jar file to the CLASSPATH or lib.
 
-## 在运行时环境中设置环境变量
+## 在运行时环境中设置环境变量 / set environment variables 
 ```
 export SKYWALKING_RUN=true
 ```
-- 设置完成后，可以在当前环境中启动业务应用系统
+- 设置完成后，SkyWalking将随应用启动运行
+- After set env, SkyWalking will be working, when application startup.
 
-## 通过扩展log在应用日志中，显示trace-id
-- 编译并发布skywalking-log/log4j-1.x-plugin和skywalking-log/log4j-2.x-plugin
-- 引用所需的日志插件
-```xml
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-log4j-1.x-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-<dependency>
-    <groupId>com.ai.cloud</groupId>
-    <artifactId>skywalking-log4j-2.x-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-```
-- 设置log4j和log4j2参考[用户指南](http://wu-sheng.github.io/sky-walking/sample-code/codeView.html)->能通过哪些渠道在应用中发现traceid?
-- 日志示例
-```
-#tid:N/A，代表环境设置不正确或监控已经关闭
-#tid: ,代表测试当前访问不在监控范围
-#tid:1.0a2.1453065000002.c3f8779.27878.30.184，标识此次访问的tid信息，示例如下
-[DEBUG] Returning handler method [public org.springframework.web.servlet.ModelAndView com.ai.cloud.skywalking.example.controller.OrderSaveController.save(javax.servlet.http.HttpServletRequest)] TID:1.0a2.1453192613272.2e0c63e.11144.58.1 2016-01-19 16:36:53.288 org.springframework.beans.factory.support.DefaultListableBeanFactory 
-```
+# 在应用程序中显示traceid / How to find tid
+- [Find TID](HOW_TO_FIND_TID.md)
+
+# QA
+- [SkyWalking SDK是否已经工作？ Is SkyWalking SDK Running?](QA/IS_RUNNING.md)
+- [tid在web-ui上无法查询. tid can't be search on web-ui](QA/TID_CANNOT_BE_SEARCH.md)
+- [SkyWalking Server的运行情况. The status of SkyWalking Server](QA/SERVER_RUNNING_STAUTS.md)
+- [SkyWalking Analysis部署运行常见问题. The FAQ of SkyWalking Analysis deployment](QA/deploy-sw_analysis-problem.md)
+
+# 源代码说明
+* [追踪日志明细存储结构说明. the storage structure of tracking logs](skywalking-server/doc/hbase_table_desc.md)

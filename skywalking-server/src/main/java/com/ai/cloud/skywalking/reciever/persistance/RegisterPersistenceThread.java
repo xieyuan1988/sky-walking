@@ -22,6 +22,10 @@ public class RegisterPersistenceThread extends Thread {
 
     public RegisterPersistenceThread() {
         super("RegisterPersistenceThread");
+        File offsetParentDir = new File(REGISTER_FILE_PARENT_DIRECTORY);
+        if (!offsetParentDir.exists()){
+            offsetParentDir.mkdirs();
+        }
     }
 
     @Override
@@ -53,8 +57,6 @@ public class RegisterPersistenceThread extends Thread {
 
                 Collection<FileRegisterEntry> fileRegisterEntries = MemoryRegister
                         .instance().getEntries();
-                logger.debug("file Register Entries size [{}]",
-                        fileRegisterEntries.size());
                 try {
                     writer = new BufferedWriter(new FileWriter(file));
                 } catch (IOException e) {

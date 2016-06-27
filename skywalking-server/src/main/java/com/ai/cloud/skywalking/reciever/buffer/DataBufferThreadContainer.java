@@ -1,9 +1,6 @@
 package com.ai.cloud.skywalking.reciever.buffer;
 
-import com.ai.cloud.skywalking.reciever.conf.Config;
-import org.apache.commons.io.comparator.NameFileComparator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static com.ai.cloud.skywalking.reciever.conf.Config.Persistence.MAX_APPEND_EOF_FLAGS_THREAD_NUMBER;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,7 +8,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.ai.cloud.skywalking.reciever.conf.Config.Persistence.MAX_APPEND_EOF_FLAGS_THREAD_NUMBER;
+import org.apache.commons.io.comparator.NameFileComparator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.ai.cloud.skywalking.reciever.conf.Config;
 
 public class DataBufferThreadContainer {
 
@@ -31,6 +32,10 @@ public class DataBufferThreadContainer {
     public static void init() {
         logger.info("Add EOF flags to the unprocessed data file last time.");
         File parentDir = new File(Config.Buffer.DATA_BUFFER_FILE_PARENT_DIRECTORY);
+        // 判断数据缓存文件是否存在，如果不存在，则创建
+        if (!parentDir.exists()) {
+            parentDir.mkdirs();
+        }
         NameFileComparator sizeComparator = new NameFileComparator();
         File[] dataFileList = sizeComparator.sort(parentDir.listFiles());
         logger.info("Pending file number :" + dataFileList.length);
@@ -52,7 +57,7 @@ public class DataBufferThreadContainer {
         logger.info("Data buffer thread size {} begin to init ", Config.Server.
                 MAX_DEAL_DATA_THREAD_NUMBER);
         for (int i = 0; i < Config.Server.MAX_DEAL_DATA_THREAD_NUMBER; i++) {
-            DataBufferThread dataBufferThread = new DataBufferThread();
+            DataBufferThread dataBufferThread = new DataBufferThread(i);
             dataBufferThread.start();
             buffers.add(dataBufferThread);
         }

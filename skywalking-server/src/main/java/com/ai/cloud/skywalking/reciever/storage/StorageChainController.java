@@ -1,18 +1,19 @@
 package com.ai.cloud.skywalking.reciever.storage;
 
-import com.ai.cloud.skywalking.protocol.Span;
-import com.ai.cloud.skywalking.reciever.conf.Config;
-import com.ai.cloud.skywalking.reciever.conf.Constants;
-import com.ai.cloud.skywalking.reciever.storage.chain.AlarmChain;
-import com.ai.cloud.skywalking.reciever.storage.chain.SaveToHBaseChain;
-import com.ai.cloud.skywalking.reciever.storage.chain.SaveToMySQLChain;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static com.ai.cloud.skywalking.reciever.conf.Config.StorageChain.STORAGE_TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ai.cloud.skywalking.reciever.conf.Config.StorageChain.STORAGE_TYPE;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.ai.cloud.skywalking.protocol.Span;
+import com.ai.cloud.skywalking.reciever.conf.Constants;
+import com.ai.cloud.skywalking.reciever.selfexamination.ServerHealthCollector;
+import com.ai.cloud.skywalking.reciever.selfexamination.ServerHeathReading;
+import com.ai.cloud.skywalking.reciever.storage.chain.AlarmChain;
+import com.ai.cloud.skywalking.reciever.storage.chain.SaveToHBaseChain;
 
 public class StorageChainController {
     private static Logger logger = LogManager
@@ -24,8 +25,6 @@ public class StorageChainController {
         if (STORAGE_TYPE.equalsIgnoreCase("hbase")) {
             chainArray.add(new AlarmChain());
             chainArray.add(new SaveToHBaseChain());
-        } else if (STORAGE_TYPE.equalsIgnoreCase("mysql")) {
-            chainArray.add(new SaveToMySQLChain());
         } else {
             throw new RuntimeException("illegal storage type.");
         }
@@ -46,21 +45,18 @@ public class StorageChainController {
             } catch (Throwable e) {
                 logger.error("ready to save buriedPoint error, choose to ignore. data="
                         + buriedPoint, e);
+                ServerHealthCollector.getCurrentHeathReading("StorageChainController").updateData(ServerHeathReading.ERROR,
+                        "ready to save buriedPoint error, choose to ignore. data=" + buriedPoint);
             }
         }
 
-        while (true) {
-            try {
-                Chain chain = new Chain(chainArray);
-                chain.doChain(spans);
-                break;
-            } catch (Throwable e) {
-                try {
-                    Thread.sleep(Config.StorageChain.RETRY_STORAGE_WAIT_TIME);
-                } catch (InterruptedException e1) {
-                    logger.error("Sleep failure", e);
-                }
-            }
+        try {
+            Chain chain = new Chain(chainArray);
+            chain.doChain(spans);
+        } catch (Throwable e) {
+            logger.error("Failed to storage chain.", e);
+            ServerHealthCollector.getCurrentHeathReading("StorageChainController").updateData(ServerHeathReading.ERROR,
+                    "Failed to storage chain.Cause:" + e.getMessage());
         }
     }
 }

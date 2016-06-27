@@ -83,6 +83,8 @@ public class Config {
         public static int REDIS_MAX_TOTAL = 20;
 
         public static boolean ALARM_OFF_FLAG = false;
+        
+        public static String ALARM_TYPE_CONFIG_ID = "1004";        
     }
 
     public static class MailSenderInfo {
@@ -91,5 +93,5 @@ public class Config {
 
     public static class TemplateInfo {
         public static String CONFIG_ID = "1001";
-    }
+    }    
 }

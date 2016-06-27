@@ -26,6 +26,7 @@ import com.ai.cloud.skywalking.reciever.conf.Config;
 import com.ai.cloud.skywalking.reciever.conf.ConfigInitializer;
 import com.ai.cloud.skywalking.reciever.handler.CollectionServerDataHandler;
 import com.ai.cloud.skywalking.reciever.persistance.PersistenceThreadLauncher;
+import com.ai.cloud.skywalking.reciever.selfexamination.ServerHealthCollector;
 
 public class CollectionServer {
 
@@ -49,7 +50,7 @@ public class CollectionServer {
                         @Override
                         public void initChannel(io.netty.channel.socket.SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+                            p.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0,4));
                             p.addLast("frameEncoder", new LengthFieldPrepender(4));
                             p.addLast("decoder", new ByteArrayDecoder());
                             p.addLast("encoder", new ByteArrayEncoder());
@@ -68,6 +69,8 @@ public class CollectionServer {
     public static void main(String[] args) throws IOException, IllegalAccessException, InterruptedException {
         logger.info("To initialize the collect server configuration parameters....");
         initializeParam();
+        logger.info("To init server health collector...");
+        ServerHealthCollector.init();
         logger.info("To launch register persistence thread....");
         PersistenceThreadLauncher.doLaunch();
         logger.info("To init data buffer thread container...");
